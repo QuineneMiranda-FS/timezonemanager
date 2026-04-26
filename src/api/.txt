@@ -1,0 +1,2 @@
+Update Your API Configuration
+Replace import.meta.env with process.env. Expo will automatically pick up the variables from your .env file.
