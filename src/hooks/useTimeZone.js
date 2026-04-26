@@ -29,7 +29,7 @@ export const useTimeZone = () => {
 
         return {
           ...tz,
-          id: currentTzId, 
+          id: currentTzId,
           cityName: cityMatch ? cityMatch.cityName : "Unknown City",
         };
       });

@@ -11,8 +11,8 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+//Components
 import { useTimeZone } from "../hooks/useTimeZone";
-
 import AddTimeZoneForm from "../components/AddTimeZoneForm";
 
 const TimeZoneList = () => {
@@ -102,7 +102,6 @@ const TimeZoneList = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Time Zone Manager</Text>
 
-  
       <AddTimeZoneForm onAdd={addTimeZone} locations={locations} />
 
       {loading && <ActivityIndicator size="large" color="#0000ff" />}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import * as api from "../api/locationAPI";
-import * as tzApi from "../api/timezoneAPI";
+import * as api from "../API/locationAPI";
+import * as tzApi from "../API/timezoneAPI";
 
 export const useLocation = () => {
   const [locations, setLocations] = useState([]);

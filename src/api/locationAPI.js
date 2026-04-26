@@ -1,7 +1,10 @@
 import axios from "axios";
+// Import your Render URL
+import { API_BASE_URL } from "../config";
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api",
+  // Swap localhost for your Render URL
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
