@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Text,
   ActivityIndicator,
   Button,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginScreen from "./login";
 import SignupScreen from "./signup";
