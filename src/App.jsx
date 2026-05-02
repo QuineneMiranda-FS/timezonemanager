@@ -47,10 +47,20 @@ function NavigationWrapper() {
           </Text>
         </View>
 
-        <View style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
           <TimeZoneList />
+
+          {/* Visual Divider */}
+          <View
+            style={{ height: 1, backgroundColor: "#eee", marginVertical: 30 }}
+          />
+
           <LocationList />
-        </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );

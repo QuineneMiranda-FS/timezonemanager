@@ -31,6 +31,17 @@ const TimeZoneList = () => {
     cityName: "",
   });
 
+  const onAddWrapper = async (values) => {
+    try {
+      const result = await addTimeZone(values);
+      if (result) {
+        const newId = result._id || result.id;
+        setHighlightedId(newId);
+      }
+    } catch (err) {
+      console.error("Add failed", err);
+    }
+  };
   const handleEdit = (record) => {
     setEditingRecord(record);
     setFormData({
@@ -52,9 +63,11 @@ const TimeZoneList = () => {
     const id = editingRecord?._id || editingRecord?.id;
     if (!id) return;
 
+    const searchName = (formData.cityName || "").toLowerCase();
+
     try {
       const selectedLocation = locations.find(
-        (loc) => loc.cityName.toLowerCase() === formData.cityName.toLowerCase(),
+        (loc) => loc?.cityName && loc.cityName.toLowerCase() === searchName,
       );
 
       const submissionValues = {
@@ -86,6 +99,8 @@ const TimeZoneList = () => {
   };
 
   const renderItem = ({ item }) => {
+    const itemId = item._id || item.id || Math.random().toString();
+
     return (
       <View
         style={[
@@ -95,7 +110,7 @@ const TimeZoneList = () => {
         ]}
       >
         <View style={{ flex: 2 }}>
-          <Text style={styles.codeText}>{item._id || item.id}</Text>
+          <Text style={styles.codeText}>{String(itemId).slice(-6)}</Text>
           <Text style={styles.boldText}>
             {item.name} -{" "}
             {item.cityName || item.locationData?.cityName || "Unknown"}
@@ -106,7 +121,7 @@ const TimeZoneList = () => {
           <TouchableOpacity onPress={() => handleEdit(item)}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => confirmDelete(item._id || item.id)}>
+          <TouchableOpacity onPress={() => confirmDelete(itemId)}>
             <Text style={styles.deleteBtn}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -117,20 +132,20 @@ const TimeZoneList = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Time Zone Manager</Text>
-      <AddTimeZoneForm onAdd={addTimeZone} locations={locations} />
 
-      {loading && <ActivityIndicator size="large" color="#0000ff" />}
+      <AddTimeZoneForm onAdd={onAddWrapper} locations={locations} />
 
       <View style={styles.listContainer}>
-        {timeZones.length > 0 ? (
-          timeZones.map((item) => (
-            <View key={item._id || item.id}>{renderItem({ item })}</View>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No time zones found.</Text>
-        )}
+        {timeZones && timeZones.length > 0
+          ? timeZones.map((item) => (
+              <View key={item._id || item.id || Math.random()}>
+                {renderItem({ item })}
+              </View>
+            ))
+          : !loading && (
+              <Text style={styles.emptyText}>No time zones found.</Text>
+            )}
       </View>
-
       <Modal visible={isEditModalOpen} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -189,7 +204,7 @@ const TimeZoneList = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 10 },
+  container: { backgroundColor: "#fff", padding: 10 },
   listContainer: { marginTop: 10 },
   emptyText: { padding: 20, textAlign: "center", color: "#999" },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },

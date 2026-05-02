@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   Modal,
   TextInput,
@@ -22,12 +21,10 @@ const LocationList = () => {
     removeLocation,
     refresh,
   } = useLocation();
-
   const { timeZones, loading: tzLoading } = useTimeZone();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-
   const [formData, setFormData] = useState({
     cityName: "",
     countryCode: "",
@@ -35,17 +32,12 @@ const LocationList = () => {
   });
 
   const handleEdit = (record) => {
-    console.log("Editing Record:", record);
     setEditingRecord(record);
-
     setFormData({
       cityName: record.cityName || "",
       countryCode: record.countryCode || "",
       timeZoneId: record.timeZoneId || "",
-      region: record.region || "",
-      postcode: record.postcode || "",
     });
-
     setIsModalOpen(true);
   };
 
@@ -54,7 +46,6 @@ const LocationList = () => {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
-
     try {
       if (editingRecord) {
         await updateLocation(editingRecord._id || editingRecord.id, formData);
@@ -80,13 +71,13 @@ const LocationList = () => {
     ]);
   };
 
-  const renderItem = ({ item }) => {
+  const renderLocationRow = (item) => {
     const tzMatch = timeZones.find(
       (tz) => (tz.id || tz._id)?.toString() === item.timeZoneId?.toString(),
     );
 
     return (
-      <View style={styles.row}>
+      <View style={styles.row} key={item._id || item.id}>
         <View style={{ flex: 2 }}>
           <Text style={styles.cityText}>
             {item.cityName}, {item.countryCode}
@@ -97,7 +88,7 @@ const LocationList = () => {
           <TouchableOpacity onPress={() => handleEdit(item)}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => confirmDelete(item._id)}>
+          <TouchableOpacity onPress={() => confirmDelete(item._id || item.id)}>
             <Text style={styles.deleteBtn}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -124,11 +115,7 @@ const LocationList = () => {
       {loading || tzLoading ? (
         <ActivityIndicator size="large" color="#1890ff" />
       ) : (
-        <FlatList
-          data={locations}
-          keyExtractor={(item) => item._id || item.id}
-          renderItem={renderItem}
-        />
+        <View>{locations.map((item) => renderLocationRow(item))}</View>
       )}
 
       <Modal visible={isModalOpen} animationType="slide" transparent>
@@ -137,7 +124,6 @@ const LocationList = () => {
             <Text style={styles.modalTitle}>
               {editingRecord ? "Edit" : "Add"} Location
             </Text>
-
             <TextInput
               style={styles.input}
               placeholder="City Name"
@@ -154,17 +140,6 @@ const LocationList = () => {
                 setFormData({ ...formData, countryCode: text })
               }
             />
-
-            {/* <Text style={styles.label}>Timezone ID:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 1"
-              value={formData.timeZoneId?.toString()}
-              onChangeText={(text) =>
-                setFormData({ ...formData, timeZoneId: text })
-              }
-            /> */}
-
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
                 <Text style={styles.saveBtnText}>Save</Text>
@@ -181,27 +156,35 @@ const LocationList = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: {
+    backgroundColor: "#fff",
+    padding: 10,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
-    marginTop: 40,
+    alignItems: "center",
+    marginBottom: 15,
   },
   title: { fontSize: 24, fontWeight: "bold" },
-  addBtn: { backgroundColor: "#1890ff", padding: 10, borderRadius: 5 },
+  addBtn: {
+    backgroundColor: "#1890ff",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+  },
   addBtnText: { color: "#fff", fontWeight: "bold" },
   row: {
     flexDirection: "row",
-    padding: 15,
+    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     alignItems: "center",
   },
   cityText: { fontSize: 16, fontWeight: "600" },
   tzText: { fontSize: 12, color: "#666" },
-  actions: { flexDirection: "row", flex: 1, justifyContent: "space-around" },
-  editBtn: { color: "#1890ff", marginRight: 10 },
+  actions: { flexDirection: "row", gap: 15 },
+  editBtn: { color: "#1890ff" },
   deleteBtn: { color: "#ff4d4f" },
   modalOverlay: {
     flex: 1,
@@ -218,7 +201,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 15,
   },
-  label: { marginBottom: 5, fontWeight: "bold" },
   modalButtons: { marginTop: 10 },
   saveBtn: {
     backgroundColor: "#1890ff",
