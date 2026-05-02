@@ -10,14 +10,21 @@ import {
 import { useTimeZone } from "../hooks/useTimeZone";
 
 function TimeZoneList() {
-  const { timeZones, loading, error, removeTimeZone, addTimeZone } =
-    useTimeZone();
+  const {
+    timeZones,
+    loading,
+    error,
+    removeTimeZone,
+    addTimeZone,
+    updateTimeZone,
+  } = useTimeZone();
+  const [editingId, setEditingId] = useState(null);
 
   if (loading && timeZones.length === 0) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text>Loading time zones...</Text>
+        <Text>Loading...</Text>
       </View>
     );
   }
@@ -26,24 +33,47 @@ function TimeZoneList() {
     <View style={styles.container}>
       <Text style={styles.title}>Time Zone Manager</Text>
 
-      <AddTimeZoneForm onAdd={addTimeZone} />
+      <AddTimeZoneForm onAdd={addTimeZone} locations={[]} />
 
       {error && <Text style={styles.errorText}>Error: {error.message}</Text>}
 
       <FlatList
         data={timeZones}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <Text style={styles.tzName}>{item.name}</Text>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => removeTimeZone(item.id)}
-            >
-              <Text style={styles.deleteText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          if (editingId === item.id) {
+            return (
+              <EditTimeZoneForm
+                item={item}
+                onUpdate={updateTimeZone}
+                onCancel={() => setEditingId(null)}
+              />
+            );
+          }
+
+          return (
+            <View style={styles.listItem}>
+              <View>
+                <Text style={styles.tzName}>{item.name}</Text>
+                <Text style={styles.tzSubText}>{item.cityName}</Text>
+              </View>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => setEditingId(item.id)}
+                >
+                  <Text style={styles.buttonTextSmall}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => removeTimeZone(item.id)}
+                >
+                  <Text style={styles.buttonTextSmall}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        }}
       />
     </View>
   );

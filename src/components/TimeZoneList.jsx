@@ -3,15 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Modal,
   TextInput,
   Alert,
   ActivityIndicator,
-  ScrollView,
 } from "react-native";
-//Components
 import { useTimeZone } from "../hooks/useTimeZone";
 import AddTimeZoneForm from "./AddTimeZoneForm";
 
@@ -28,25 +25,19 @@ const TimeZoneList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [highlightedId, setHighlightedId] = useState(null);
-
   const [formData, setFormData] = useState({
     name: "",
     fullName: "",
-    location: "",
+    cityName: "",
   });
 
   const handleEdit = (record) => {
-    console.log("Record being edited:", record);
     setEditingRecord(record);
-
     setFormData({
       name: record.name || "",
       fullName: record.fullName || "",
       cityName: record.locationData?.cityName || record.cityName || "",
-      countryCode:
-        record.locationData?.countryCode || record.countryCode || "US",
     });
-
     setIsEditModalOpen(true);
   };
 
@@ -62,11 +53,25 @@ const TimeZoneList = () => {
     if (!id) return;
 
     try {
-      await updateTimeZone(id, formData);
+      const selectedLocation = locations.find(
+        (loc) => loc.cityName.toLowerCase() === formData.cityName.toLowerCase(),
+      );
+
+      const submissionValues = {
+        name: formData.name,
+        fullName: formData.fullName,
+        cityName: selectedLocation
+          ? selectedLocation.cityName
+          : formData.cityName,
+        location: selectedLocation?._id || selectedLocation?.id || null,
+        countryCode: "US",
+      };
+
+      await updateTimeZone(id, submissionValues);
       setHighlightedId(id);
       setIsEditModalOpen(false);
       setEditingRecord(null);
-      Alert.alert("Success", "Timezone updated");
+      Alert.alert("Success", "Time zone updated");
     } catch (err) {
       console.error("Update Failed:", err);
       Alert.alert("Error", "Update failed");
@@ -81,27 +86,27 @@ const TimeZoneList = () => {
   };
 
   const renderItem = ({ item }) => {
-    const isHighlighted =
-      item._id === highlightedId || item.id === highlightedId;
-
     return (
       <View
-        style={[styles.row, item._id === highlightedId && styles.highlighted]}
+        style={[
+          styles.row,
+          (item._id === highlightedId || item.id === highlightedId) &&
+            styles.highlighted,
+        ]}
       >
         <View style={{ flex: 2 }}>
-          <Text style={styles.codeText}>{item._id}</Text>
+          <Text style={styles.codeText}>{item._id || item.id}</Text>
           <Text style={styles.boldText}>
-            {item.name} - {item.locationData?.cityName || "Unknown"}
+            {item.name} -{" "}
+            {item.cityName || item.locationData?.cityName || "Unknown"}
           </Text>
           <Text style={styles.subText}>{item.fullName}</Text>
         </View>
         <View style={styles.actions}>
-          {/* PASS THE WHOLE ITEM HERE */}
           <TouchableOpacity onPress={() => handleEdit(item)}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
-          {/* PASS ONLY THE ID HERE */}
-          <TouchableOpacity onPress={() => confirmDelete(item._id)}>
+          <TouchableOpacity onPress={() => confirmDelete(item._id || item.id)}>
             <Text style={styles.deleteBtn}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -131,33 +136,34 @@ const TimeZoneList = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Time Zone</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Abbreviation (e.g. PST)"
-              value={formData.name}
-              onChangeText={(val) =>
-                setFormData({ ...formData, name: val.toUpperCase() })
-              }
-            />
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Abbr (EST)"
+                value={formData.name}
+                onChangeText={(val) =>
+                  setFormData({ ...formData, name: val.toUpperCase() })
+                }
+                autoCapitalize="characters"
+              />
+              <TextInput
+                style={[styles.input, { flex: 2 }]}
+                placeholder="Full Name (IANA)"
+                value={formData.fullName}
+                onChangeText={(val) =>
+                  setFormData({ ...formData, fullName: val })
+                }
+              />
+            </View>
 
             <TextInput
               style={styles.input}
-              placeholder="Full Name (IANA)"
-              value={formData.fullName}
+              placeholder="City Name (e.g. New York)"
+              value={formData.cityName}
               onChangeText={(val) =>
-                setFormData({ ...formData, fullName: val })
+                setFormData({ ...formData, cityName: val })
               }
             />
-
-            {/* <Text style={styles.label}>Location ID:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Location ID"
-              value={formData.location}
-              onChangeText={(val) =>
-                setFormData({ ...formData, location: val })
-              }
-            /> */}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -170,7 +176,9 @@ const TimeZoneList = () => {
                 style={[styles.btn, styles.saveBtn]}
                 onPress={handleUpdate}
               >
-                <Text style={{ color: "#fff" }}>Save</Text>
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                  Update Time Zone
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -181,17 +189,9 @@ const TimeZoneList = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-  },
-  listContainer: {
-    marginTop: 10,
-  },
-  emptyText: {
-    padding: 20,
-    textAlign: "center",
-    color: "#999",
-  },
+  container: { flex: 1, backgroundColor: "#fff", padding: 10 },
+  listContainer: { marginTop: 10 },
+  emptyText: { padding: 20, textAlign: "center", color: "#999" },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   row: {
     flexDirection: "row",
@@ -215,14 +215,16 @@ const styles = StyleSheet.create({
   },
   modalContent: { backgroundColor: "#fff", padding: 20, borderRadius: 8 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
+  inputGroup: { flexDirection: "row", gap: 10 },
   input: {
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#d9d9d9",
     borderRadius: 4,
     padding: 10,
-    marginBottom: 15,
+    fontSize: 14,
+    marginBottom: 10,
   },
-  label: { marginBottom: 5, fontWeight: "600" },
   modalButtons: { flexDirection: "row", justifyContent: "flex-end", gap: 10 },
   btn: { padding: 10, borderRadius: 4 },
   saveBtn: { backgroundColor: "#1890ff" },
