@@ -70,21 +70,29 @@ export const useTimeZone = () => {
     }
   };
 
-  const updateTimeZone = async (id, data) => {
-    setLoading(true);
-    try {
-      const { _id, __v, ...updateData } = data;
-      const cityName = Array.isArray(data.location)
-        ? data.location[0]
-        : data.location;
-      const payload = { ...updateData, cityName };
+const updateTimeZone = async (id, data) => {
+  setLoading(true);
+  try {
+    const res = await api.updateTimeZoneById(id, data);
+    const updatedRecord = res.data?.data; // The populated record from your controller
 
-      const res = await api.updateTimeZoneById(id, payload);
-      const updatedRecord = res.data?.data || res.data;
-
-      const cityMatch = locations.find(
-        (loc) => String(loc.timeZoneId) === String(id),
-      );
+    setTimeZones((prev) =>
+      prev.map((tz) => 
+        (tz._id === id || tz.id === id) 
+          ? { 
+              ...updatedRecord, 
+              id: updatedRecord._id, // Keep ID naming consistent
+              cityName: updatedRecord.locationData?.cityName || "Unknown City" 
+            } 
+          : tz
+      )
+    );
+  } catch (err) {
+    Alert.alert("Update Failed", "Check your connection.");
+  } finally {
+    setLoading(false);
+  }
+};  
 
       const enrichedUpdate = {
         ...updatedRecord,
@@ -106,19 +114,17 @@ export const useTimeZone = () => {
     }
   };
 
-  const removeTimeZone = async (id) => {
-    console.log("Attempting to delete ID:", id);
-    setLoading(true);
-    try {
-      await api.deleteTimeZoneById(id);
-      setTimeZones((prev) => prev.filter((tz) => (tz.id || tz._id) !== id));
-    } catch (err) {
-      console.error("Delete API Error:", err.response?.data || err.message);
-      Alert.alert("Delete Error", "Could not remove the entry.");
-    } finally {
-      setLoading(false);
-    }
-  };
+const removeTimeZone = async (id) => {
+  setLoading(true);
+  try {
+    await api.deleteTimeZoneById(id);
+    setTimeZones((prev) => prev.filter((tz) => (tz._id || tz.id) !== id));
+  } catch (err) {
+    Alert.alert("Delete Error", "Could not remove the entry.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return {
     timeZones,
