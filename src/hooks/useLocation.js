@@ -79,7 +79,15 @@ export const useLocation = () => {
   const updateLocation = async (id, data) => {
     setLoading(true);
     try {
-      const { _id, __v, id: redundantId, ...payload } = data;
+      const {
+        _id,
+        id: redundant,
+        __v,
+        createdAt,
+        updatedAt,
+        ...payload
+      } = data;
+
       const res = await locApi.updateLocationById(id, payload);
       const updatedRecord = res.data?.data || res.data;
 

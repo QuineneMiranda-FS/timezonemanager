@@ -98,7 +98,7 @@ export const useTimeZone = () => {
     try {
       await api.deleteTimeZoneById(id);
       setTimeZones((prev) =>
-        prev.filter((tz) => tz._id !== id && tz.id !== id),
+        prev.filter((tz) => String(tz._id) !== String(id)),
       );
     } catch (err) {
       Alert.alert("Delete Error", "Could not remove the entry.");

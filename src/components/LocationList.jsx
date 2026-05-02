@@ -36,22 +36,29 @@ const LocationList = () => {
 
   const handleEdit = (record) => {
     setEditingRecord(record);
+    const { _id, id, __v, createdAt, updatedAt, ...formFields } = record;
+
     setFormData({
-      cityName: record.cityName,
-      countryCode: record.countryCode,
-      timeZoneId: record.timeZoneId,
+      cityName: formFields.cityName || "",
+      countryCode: formFields.countryCode || "",
+      timeZoneId: formFields.timeZoneId || "",
+      region: formFields.region || "",
+      postcode: formFields.postcode || "",
     });
+
     setIsModalOpen(true);
   };
 
   const handleSave = async () => {
-    if (!formData.cityName || !formData.countryCode || !formData.timeZoneId) {
+    // Check fields
+    if (!formData.cityName || !formData.countryCode) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
 
     try {
       if (editingRecord) {
+        // Use the stored ID for the update, but send only formData
         await updateLocation(editingRecord._id || editingRecord.id, formData);
       } else {
         await addLocation(formData);
@@ -92,7 +99,7 @@ const LocationList = () => {
           <TouchableOpacity onPress={() => handleEdit(item)}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => confirmDelete(item._id || item.id)}>
+          <TouchableOpacity onPress={() => confirmDelete(item._id)}>
             <Text style={styles.deleteBtn}>Delete</Text>
           </TouchableOpacity>
         </View>

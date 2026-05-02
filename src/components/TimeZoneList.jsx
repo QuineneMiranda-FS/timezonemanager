@@ -90,7 +90,7 @@ const TimeZoneList = () => {
           <TouchableOpacity onPress={() => handleEdit(item)}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => confirmDelete(item.id || item._id)}>
+          <TouchableOpacity onPress={() => confirmDelete(item._id)}>
             <Text style={styles.deleteBtn}>Delete</Text>
           </TouchableOpacity>
         </View>
