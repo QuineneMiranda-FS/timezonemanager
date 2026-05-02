@@ -31,13 +31,21 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        await saveItem("userToken", data.token);
-        setUser({ token: data.token, ...data.user });
-      } else {
-        alert(data.message || "Signup failed");
-      }
-    } catch (error) {
+      try {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {return true; 
+    } else {
+      alert(data.message || "Signup failed");
+      return false;
+    }
+  } catch (error) {
       if (error.name === "AbortError") {
         alert(
           "Server is still waking up. Your account was likely created; try logging in now.",
